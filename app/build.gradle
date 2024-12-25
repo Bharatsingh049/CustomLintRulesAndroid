@@ -1,0 +1,100 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-parcelize'
+    id 'kotlin-kapt'
+}
+
+android {
+    compileSdkVersion 32
+    buildToolsVersion "32.0.0"
+
+    defaultConfig {
+        applicationId "com.android.customlintrulesandroid"
+        minSdkVersion 21
+        targetSdkVersion 32
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("test-keystore.jks")
+            storePassword 'password'
+            keyAlias 'test-key'
+            keyPassword 'password'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    flavorDimensions "build"
+
+    productFlavors {
+        dev {
+            dimension "build"
+            buildConfigField "String", "BASE_URL", "\"$DEV_BASE_URL\""
+        }
+        staging {
+            dimension "build"
+            buildConfigField "String", "BASE_URL", "\"$STAGING_BASE_URL\""
+        }
+        prod {
+            dimension "build"
+            buildConfigField "String", "BASE_URL", "\"$PROD_BASE_URL\""
+        }
+    }
+
+    afterEvaluate {
+        applicationVariants.all { variant ->
+            variant.outputs.each { output ->
+                def lintTask = tasks["lint${variant.name.capitalize()}"]
+                variant.getAssembleProvider().configure() {
+                    it.dependsOn lintTask
+                }
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+
+dependencies {
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    lintChecks project(':AndroidLintRulees')
+    implementation 'androidx.core:core-ktx:1.8.0'
+    implementation 'androidx.appcompat:appcompat:1.5.0'
+    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0-alpha07'
+    androidTestImplementation 'androidx.test:rules:1.4.1-alpha07'
+
+}
